@@ -6,6 +6,6 @@ Release: Application Design Prototype 1.0
 Contribution record (complete accurately before submitting):
 - Raphael Olatunde: [Describe the work you personally completed: prototype interface, discovery/search behavior, IndexedDB watchlist CRUD, testing, packaging, and demonstration recording, as applicable.]
 - Jeremiah Sanchez: [List only work actually completed.]
-- [Teammate 3 name]: [List only work actually completed.]
+- Onyinye Ojiako: tested and edited prototype designs, reviewed interface changes.
 
 Replace bracketed text with accurate names and contributions. Do not claim work that was not completed by a team member.
