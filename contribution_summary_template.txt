@@ -8,4 +8,3 @@ Contribution record (complete accurately before submitting):
 - Jeremiah Sanchez: Implemented the interactive Matter.js Physics Poster Wall, Surprise Me picker, dropdown filter controls, input validation, expanded IndexedDB edit/custom-entry forms, live TMDB poster integration, GitHub Pages deployment.
 - Onyinye Ojiako: tested and edited prototype designs, reviewed interface changes.
 
-Replace bracketed text with accurate names and contributions. Do not claim work that was not completed by a team member.
