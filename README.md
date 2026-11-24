@@ -1,5 +1,5 @@
-MOVIEMATCH — PROTOTYPE RELEASE 
-
+**MOVIEMATCH — PROTOTYPE RELEASE 
+**
 CONTENTS
 - index.html: responsive MovieMatch dynamic web application with Matter.js physics poster wall, natural-language search, filter dropdowns, Surprise Me, optional TMDB poster integration, and IndexedDB watchlist CRUD.
 - contribution_summary.txt: team contribution record for Assignment #4.
