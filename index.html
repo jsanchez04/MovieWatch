@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MovieMatch — Find your next favorite</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.20.0/matter.min.js" defer></script>
+<style>
+:root{
+  --bg:#090a0b;
+  --panel:#151617;
+  --panel2:#202123;
+  --text:#f7f4e9;
+  --muted:#aaa79d;
+  --accent:#f4c542;
+  --accent2:#e6ad24;
+  --line:#34332d;
+  --green:#b9d6a3;
+  --red:#ff7b7b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(ellipse at 82% 0%,#4a3915 0%,transparent 32%),var(--bg);
+  color:var(--text);
+  font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
+}
+body.reduced-motion *{
+  transition:none !important;
+  animation:none !important;
+}
+header{
+  min-height:76px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+  padding:10px clamp(18px,5vw,72px);
+  position:sticky;
+  top:0;
+  background:#090a0bef;
+  backdrop-filter:blur(16px);
+  z-index:20;
+}
+.brand{font-weight:850;font-size:21px;letter-spacing:-.8px;cursor:pointer}
+.brand span{color:var(--accent)}
+.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:2px;font-weight:600;margin-top:-4px}
+nav{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+nav button{
+  background:transparent;
+  border:1px solid transparent;
+  color:var(--muted);
+  padding:9px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:650;
+  font-size:13px;
+}
+nav button.active,nav button:hover{background:var(--panel2);color:white;border-color:var(--line)}
+nav button.utility{border:1px solid var(--line);font-size:12px;color:#d6d2c4}
+nav button.utility.on{border-color:var(--accent);color:var(--accent)}
+main{max-width:1180px;margin:auto;padding:34px 24px 80px}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center;padding:20px 0 36px}
+.eyebrow{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase}
+.hero h1{font-size:clamp(34px,5vw,58px);line-height:1.03;letter-spacing:-2.4px;margin:12px 0 16px}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{color:var(--muted);max-width:560px;font-size:16px}
+.promptbox{
+  background:linear-gradient(145deg,#201d14,#141516);
+  border:1px solid #514522;
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 20px 70px #0006;
+}
+.promptbox label{display:block;font-size:12px;color:#c5c9d7;font-weight:700;margin-bottom:10px}
+.promptrow{display:flex;gap:8px;flex-wrap:wrap}
+.promptrow input{
+  flex:1;
+  min-width:200px;
+  background:#0b0c0d;
+  border:1px solid var(--line);
+  border-radius:11px;
+  color:white;
+  padding:13px 14px;
+  outline:none;
+  font-size:14px;
+}
+.promptrow input:focus{border-color:var(--accent)}
+.promptrow input.invalid{border-color:var(--red);box-shadow:0 0 0 2px #ff7b7b33}
+.form-error{color:var(--red);font-size:12px;margin-top:8px;min-height:18px;font-weight:600}
+button.primary{
+  background:linear-gradient(100deg,#f0bd32,#ffdf75);
+  color:#17130a;
+  border:0;
+  border-radius:11px;
+  padding:12px 16px;
+  font-weight:850;
+  cursor:pointer;
+  font-size:13px;
+}
+button.primary:hover{filter:brightness(1.1)}
+button.secondary{
+  background:#23221d;
+  color:var(--text);
+  border:1px solid #514522;
+  border-radius:11px;
+  padding:11px 14px;
+  font-weight:750;
+  cursor:pointer;
+  font-size:13px;
+}
+button.secondary:hover{border-color:var(--accent);color:var(--accent)}
+.prompt-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.chip{
+  border:1px solid var(--line);
+  color:#b8bfd0;
+  background:#22211c;
+  border-radius:99px;
+  padding:6px 10px;
+  font-size:11px;
+  cursor:pointer;
+}
+.chip:hover{border-color:var(--accent);color:white}
+
+/* Filter & Data Controls Bar */
+.controls-bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:end;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px 16px;
+  margin-bottom:22px;
+}
+.control-group{display:flex;flex-direction:column;gap:4px;min-width:130px;flex:1}
+.control-group label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.control-group select,.control-group input,.modal select,.modal input,.modal textarea{
+  background:#0c0d0f;
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:9px 10px;
+  font-size:13px;
+  outline:none;
+  font-family:inherit;
+}
+.control-group select:focus,.modal select:focus,.modal input:focus,.modal textarea:focus{border-color:var(--accent)}
+.view-toggle{display:flex;gap:6px;align-items:center}
+.view-toggle button{
+  background:#0c0d0f;
+  border:1px solid var(--line);
+  color:var(--muted);
+  border-radius:9px;
+  padding:9px 12px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.view-toggle button.active{background:#403316;border-color:var(--accent);color:#ffe7a0}
+
+.sectionhead{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin:10px 0 16px}
+.sectionhead h2{margin:4px 0 0;font-size:24px;letter-spacing:-.8px}
+.muted{color:var(--muted)}
+.status-banner{
+  display:none;
+  align-items:center;
+  gap:10px;
+  padding:12px 16px;
+  border-radius:12px;
+  background:#1c1a12;
+  border:1px solid #514522;
+  color:#ffe7a0;
+  font-size:13px;
+  font-weight:650;
+  margin-bottom:16px;
+}
+.status-banner.show{display:flex}
+.spinner{
+  width:16px;height:16px;
+  border:2px solid #f4c54244;
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px}
+.movie{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+  transition:.2s;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+}
+.movie:hover{transform:translateY(-4px);border-color:#a8872f;box-shadow:0 14px 35px #0005}
+.movie.highlighted{border-color:var(--accent);box-shadow:0 0 0 2px #f4c54266,0 16px 36px #0008}
+.poster{
+  height:215px;
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(circle at 50% 35%,var(--glow,#6d5722),transparent 62%),linear-gradient(145deg,#26251f,#101112);
+}
+.poster img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  z-index:1;
+}
+.poster:before{
+  content:"";
+  position:absolute;
+  width:190px;height:190px;
+  border:1px solid #f4c54235;
+  border-radius:50%;
+  box-shadow:0 0 0 22px #f4c5420a,0 0 0 48px #f4c54208;
+}
+.poster .emoji{font-size:74px;z-index:1;filter:drop-shadow(0 12px 12px #0009)}
+.poster:after{content:"";position:absolute;inset:48% 0 0;background:linear-gradient(transparent,#000d);z-index:2}
+.poster .postername{
+  position:absolute;bottom:12px;left:13px;right:13px;
+  font-weight:900;font-size:17px;line-height:1.08;
+  text-shadow:0 2px 8px #000d;z-index:3;
+}
+.rating{
+  position:absolute;top:10px;right:10px;
+  background:#090b12cc;padding:4px 8px;border-radius:7px;
+  font-size:11px;font-weight:800;z-index:3;
+}
+.badge{
+  position:absolute;top:10px;left:10px;
+  background:#403316ee;border:1px solid #a8872f;color:#ffe7a0;
+  padding:3px 7px;border-radius:7px;font-size:10px;font-weight:800;z-index:3;
+  text-transform:uppercase;
+}
+.moviebody{padding:14px;display:flex;flex-direction:column;flex:1}
+.moviebody h3{margin:0 0 4px;font-size:15px}
+.meta{color:var(--muted);font-size:11px}
+.desc{font-size:12px;color:#c1c6d4;min-height:38px;margin:9px 0;flex:1}
+.user-note{
+  font-size:11px;color:#e7d9a7;background:#201d14;border:1px solid #44391d;
+  border-radius:8px;padding:6px 8px;margin-bottom:9px;
+}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.actions button{
+  flex:1;min-width:64px;
+  border:1px solid var(--line);
+  background:#1c2231;color:white;
+  border-radius:8px;padding:8px 6px;
+  font-size:11px;font-weight:750;cursor:pointer;
+}
+.actions button:hover{border-color:var(--accent)}
+.actions .save{background:#403316;border-color:#80651f;color:#ffe7a0}
+.actions .danger{background:#2d1619;border-color:#692c34;color:#ffb4b4}
+
+/* Physics Wall Stage */
+.physics-wrap{
+  display:none;
+  background:radial-gradient(circle at 50% 0%,#262010 0%,#0d0e10 70%);
+  border:1px solid #514522;
+  border-radius:18px;
+  overflow:hidden;
+  margin-bottom:24px;
+}
+.physics-wrap.active{display:block}
+.physics-toolbar{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  padding:12px 16px;border-bottom:1px solid var(--line);background:#121315;
+}
+.physics-toolbar span{font-size:12px;color:var(--muted)}
+.physics-stage{
+  position:relative;
+  width:100%;
+  height:540px;
+  overflow:hidden;
+  touch-action:none;
+  user-select:none;
+  cursor:grab;
+}
+.physics-stage:active{cursor:grabbing}
+.phys-card{
+  position:absolute;
+  top:0;left:0;
+  width:128px;height:184px;
+  border-radius:12px;
+  border:1px solid #755f23;
+  background:linear-gradient(155deg,#2a261a,#111215);
+  box-shadow:0 10px 24px #000a;
+  overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:10px;
+  will-change:transform;
+}
+.phys-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.phys-card:after{content:"";position:absolute;inset:35% 0 0;background:linear-gradient(transparent,#000e);pointer-events:none}
+.phys-card .p-emoji{position:absolute;top:24px;left:0;right:0;text-align:center;font-size:48px;pointer-events:none}
+.phys-card .p-rate{position:absolute;top:7px;right:7px;background:#090b12cc;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:800;z-index:2}
+.phys-card .p-title{position:relative;z-index:2;font-size:12px;font-weight:850;line-height:1.15;text-shadow:0 1px 6px #000}
+.phys-card .p-year{position:relative;z-index:2;font-size:10px;color:#d6d2c4}
+
+.page{display:none}.page.active{display:block}
+.empty{padding:40px;text-align:center;border:1px dashed #41485b;border-radius:16px;color:var(--muted)}
+.stats{display:flex;gap:12px;margin:14px 0 22px;flex-wrap:wrap}
+.stat{background:var(--panel);border:1px solid var(--line);padding:13px 17px;border-radius:12px;min-width:120px}
+.stat strong{display:block;font-size:22px}
+.stat span{font-size:11px;color:var(--muted)}
+
+.modalback{
+  position:fixed;inset:0;background:#000c;
+  display:none;align-items:center;justify-content:center;
+  padding:20px;z-index:40;
+}
+.modalback.show{display:flex}
+.modal{
+  max-width:500px;width:100%;max-height:90vh;overflow-y:auto;
+  background:var(--panel);border:1px solid #41465b;border-radius:18px;
+  padding:24px;position:relative;
+}
+.modal h2{margin:0 0 8px}
+.modal p{color:#c2c7d5}
+.close{position:absolute;right:15px;top:12px;background:none;border:0;color:white;font-size:24px;cursor:pointer}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:12px;font-weight:700;color:#d6d2c4}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dbnote{font-size:11px;color:var(--green);margin-top:16px}
+.disclaimer{
+  margin-top:24px;padding:12px 16px;border-radius:12px;
+  background:#121315;border:1px solid var(--line);
+  font-size:11px;color:var(--muted);line-height:1.6;
+}
+.footer{
+  border-top:1px solid var(--line);margin-top:30px;padding-top:18px;
+  color:#747d91;font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+.toast{
+  position:fixed;bottom:22px;right:22px;z-index:60;
+  background:#201d14;border:1px solid var(--accent);color:#fff6d6;
+  padding:11px 16px;border-radius:11px;font-size:13px;font-weight:700;
+  box-shadow:0 12px 30px #0009;display:none;
+}
+.toast.show{display:block}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){
+  header{padding:10px 14px}.brand{font-size:18px}
+  main{padding:20px 14px}.grid{gap:10px}.poster{height:175px}.moviebody{padding:10px}
+  .field-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand" onclick="switchPage('discover')" role="button" tabindex="0" aria-label="MovieMatch Home">
+    Movie<span>Match</span>
+    <small>LESS SCROLLING. MORE WATCHING.</small>
+  </div>
+  <nav aria-label="Primary Navigation">
+    <button class="active" data-page="discover">Discover</button>
+    <button data-page="watchlist">My Watchlist <span id="navcount"></span></button>
+    <button class="utility" id="posterSetupBtn" type="button">Poster Setup (TMDB)</button>
+    <button class="utility" id="motionToggleBtn" type="button" aria-pressed="false">Reduced Motion: Off</button>
+  </nav>
+</header>
+
+<main>
+  <!-- DISCOVER PAGE -->
+  <section id="discover" class="page active" aria-labelledby="discoverHeading">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Your next movie night starts here</div>
+        <h1 id="discoverHeading">Stop scrolling.<br><em>Start watching.</em></h1>
+        <p>Describe what you are in the mood for in plain English, refine with filters, explore our interactive physics poster wall, or let Surprise Me choose for you.</p>
+      </div>
+      <div class="promptbox">
+        <label for="mood">WHAT ARE YOU IN THE MOOD FOR? <span style="color:var(--accent)">*</span></label>
+        <div class="promptrow">
+          <input id="mood" type="text" required placeholder="e.g. funny mystery with an unexpected twist" aria-describedby="searchError">
+          <button class="primary" id="findbtn" type="button">Find movies ↗</button>
+        </div>
+        <div id="searchError" class="form-error" role="alert" aria-live="polite"></div>
+        <div class="prompt-actions">
+          <button class="secondary" id="surpriseBtn" type="button">🎲 Surprise Me</button>
+          <button class="secondary" id="refreshBtn" type="button">↻ Shuffle Results</button>
+          <button class="secondary" id="clearSearchBtn" type="button">Show All 32</button>
+        </div>
+        <div class="chips" aria-label="Quick mood prompts">
+          <button class="chip" type="button" data-prompt="suspenseful mystery with a twist">Suspenseful mystery</button>
+          <button class="chip" type="button" data-prompt="funny and lighthearted">Funny &amp; light</button>
+          <button class="chip" type="button" data-prompt="sci-fi space adventure">Sci-fi adventure</button>
+          <button class="chip" type="button" data-prompt="romantic comedy">Romance</button>
+          <button class="chip" type="button" data-prompt="intense thriller not too scary">Tense, not horror</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA CONTROLS & VIEW MODE -->
+    <div class="controls-bar" aria-label="Search Filters and View Controls">
+      <div class="control-group">
+        <label for="genreFilter">Genre</label>
+        <select id="genreFilter">
+          <option value="all">All Genres</option>
+          <option value="action">Action</option>
+          <option value="adventure">Adventure</option>
+          <option value="animation">Animation</option>
+          <option value="comedy">Comedy</option>
+          <option value="crime">Crime</option>
+          <option value="drama">Drama</option>
+          <option value="family">Family</option>
+          <option value="horror">Horror</option>
+          <option value="musical">Musical</option>
+          <option value="mystery">Mystery</option>
+          <option value="romance">Romance</option>
+          <option value="sci-fi">Sci-Fi</option>
+          <option value="thriller">Thriller</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="decadeFilter">Release Era</label>
+        <select id="decadeFilter">
+          <option value="all">Any Era</option>
+          <option value="2020s">2020s</option>
+          <option value="2010s">2010s</option>
+          <option value="2000s">2000s</option>
+          <option value="classic">1999 &amp; Earlier</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="ratingFilter">Min Rating</label>
+        <select id="ratingFilter">
+          <option value="0">Any Rating</option>
+          <option value="7.5">7.5+ ★</option>
+          <option value="8.0">8.0+ ★</option>
+          <option value="8.5">8.5+ ★</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="sortFilter">Sort Results</label>
+        <select id="sortFilter">
+          <option value="match">Best Match</option>
+          <option value="rating">Highest Rated</option>
+          <option value="newest">Newest First</option>
+          <option value="title">Title (A–Z)</option>
+        </select>
+      </div>
+      <div class="control-group" style="flex:0 0 auto;min-width:auto">
+        <label>Display Mode</label>
+        <div class="view-toggle" role="group" aria-label="Results Display Mode">
+          <button type="button" id="gridViewBtn" class="active">Grid View</button>
+          <button type="button" id="physicsViewBtn">Physics Wall</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="loadingBanner" class="status-banner" role="status" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <span>Matching movies to your preferences...</span>
+    </div>
+
+    <div class="sectionhead">
+      <div>
+        <div class="eyebrow">Picked for your mood</div>
+        <h2 id="resultsTitle">Popular picks</h2>
+      </div>
+      <span class="muted" id="resultCount">32 movies</span>
+    </div>
+
+    <!-- PHYSICS POSTER WALL (Matter.js) -->
+    <div id="physicsWrap" class="physics-wrap" aria-label="Interactive Physics Poster Wall">
+      <div class="physics-toolbar">
+        <span>Drag &amp; toss posters around the wall, or click any poster to open movie details.</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="secondary" id="resetPhysicsBtn">↻ Drop Posters Again</button>
+          <button type="button" class="secondary" id="switchToGridBtn">Accessible Grid View</button>
+        </div>
+      </div>
+      <div id="physicsStage" class="physics-stage"></div>
+    </div>
+
+    <!-- ACCESSIBLE GRID VIEW -->
+    <div class="grid" id="recommendations"></div>
+  </section>
+
+  <!-- WATCHLIST PAGE (CRUD) -->
+  <section id="watchlist" class="page" aria-labelledby="watchlistHeading">
+    <div class="eyebrow">IndexedDB Persistent Storage</div>
+    <div class="sectionhead">
+      <div>
+        <h2 id="watchlistHeading">My Watchlist</h2>
+        <div class="muted">Create, view, edit, and remove saved movie entries stored locally in IndexedDB.</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select id="watchlistFilter" aria-label="Filter watchlist" style="background:#0c0d0f;color:white;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px">
+          <option value="all">All Saved</option>
+          <option value="To Watch">To Watch</option>
+          <option value="Watching">Watching</option>
+          <option value="Watched">Watched</option>
+          <option value="High">High Priority</option>
+        </select>
+        <button type="button" class="primary" id="openCustomMovieBtn">＋ Add Custom Movie</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><strong id="savedStat">0</strong><span>SAVED MOVIES</span></div>
+      <div class="stat"><strong id="toWatchStat">0</strong><span>TO WATCH</span></div>
+      <div class="stat"><strong id="watchedStat">0</strong><span>WATCHED</span></div>
+      <div class="stat"><strong id="highPriorityStat">0</strong><span>HIGH PRIORITY</span></div>
+    </div>
+
+    <div class="grid" id="savedMovies"></div>
+    <div class="dbnote">● Database Active: <strong>MovieMatchDB</strong> (Browser IndexedDB — persists across page reloads).</div>
+  </section>
+
+  <div class="disclaimer">
+    <strong>Discovery Disclaimer &amp; Attribution:</strong> MovieMatch is a movie discovery prototype and does not host, stream, download, or guarantee streaming availability for full-length films. Sample metadata is provided for demonstration. When live posters are enabled via TMDB: <em>“This product uses the TMDB API but is not endorsed or certified by TMDB.”</em>
+  </div>
+  <div class="footer">
+    <span>© 2026 MovieMatch · Raphael Olatunde, Jeremiah Sanchez, Onyinye Ojiako</span>
+    <span>Prototype Release 2.0 · Dynamic Web App + Matter.js + IndexedDB CRUD</span>
+  </div>
+</main>
+
+<!-- MOVIE DETAILS MODAL -->
+<div class="modalback" id="modalback" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <button class="close" id="closemodal" aria-label="Close details">×</button>
+    <div class="eyebrow" id="modalEyebrow">MOVIE DETAILS</div>
+    <h2 id="modalTitle"></h2>
+    <div class="meta" id="modalMeta"></div>
+    <p id="modalDesc"></p>
+    <div id="modalTags" class="chips" style="margin-bottom:14px"></div>
+    <div class="actions" id="modalActions"></div>
+    <div class="dbnote">Streaming availability is not guaranteed; MovieMatch is a discovery tool only.</div>
+  </div>
+</div>
+
+<!-- EDIT WATCHLIST ENTRY MODAL (UPDATE) -->
+<div class="modalback" id="editModalBack" role="dialog" aria-modal="true" aria-labelledby="editModalHeading">
+  <div class="modal">
+    <button class="close" id="closeEditModal" aria-label="Close edit dialog">×</button>
+    <div class="eyebrow">UPDATE WATCHLIST RECORD</div>
+    <h2 id="editModalHeading">Edit Watchlist Item</h2>
+    <form id="editWatchlistForm">
+      <input type="hidden" id="editMovieId">
+      <div class="field-row">
+        <div class="field">
+          <label for="editStatus">Watch Status *</label>
+          <select id="editStatus" required>
+            <option value="To Watch">To Watch</option>
+            <option value="Watching">Watching</option>
+            <option value="Watched">Watched</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="editPriority">Priority *</label>
+          <select id="editPriority" required>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="editPersonalRating">Your Rating</label>
+        <select id="editPersonalRating">
+          <option value="">Not Rated Yet</option>
+          <option value="10/10">10/10 — Masterpiece</option>
+          <option value="9/10">9/10 — Amazing</option>
+          <option value="8/10">8/10 — Great</option>
+          <option value="7/10">7/10 — Good</option>
+          <option value="6/10">6/10 — Decent</option>
+          <option value="5/10">5/10 — Average</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="editNotes">Personal Notes</label>
+        <textarea id="editNotes" rows="3" placeholder="e.g. Watch with friends this Friday..."></textarea>
+      </div>
+      <div class="actions">
+        <button type="submit" class="primary">Save Changes</button>
+        <button type="button" class="secondary" id="cancelEditBtn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADD CUSTOM MOVIE MODAL (CREATE) -->
+<div class="modalback" id="customModalBack" role="dialog" aria-modal="true" aria-labelledby="customModalHeading">
+  <div class="modal">
+    <button class="close" id="closeCustomModal" aria-label="Close add movie dialog">×</button>
+    <div class="eyebrow">CREATE DATABASE RECORD</div>
+    <h2 id="customModalHeading">Add Custom Movie to Watchlist</h2>
+    <form id="customMovieForm">
+      <div class="field">
+        <label for="customTitle">Movie Title *</label>
+        <input id="customTitle" type="text" required placeholder="e.g. Shutter Island">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="customYear">Release Year *</label>
+          <input id="customYear" type="number" min="1900" max="2030" required value="2024">
+        </div>
+        <div class="field">
+          <label for="customGenre">Primary Genre *</label>
+          <select id="customGenre" required>
+            <option value="Action">Action</option>
+            <option value="Adventure">Adventure</option>
+            <option value="Animation">Animation</option>
+            <option value="Comedy">Comedy</option>
+            <option value="Crime">Crime</option>
+            <option value="Drama">Drama</option>
+            <option value="Horror">Horror</option>
+            <option value="Mystery">Mystery</option>
+            <option value="Romance">Romance</option>
+            <option value="Sci-Fi">Sci-Fi</option>
+            <option value="Thriller">Thriller</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="customRating">Estimated Rating (1–10) *</label>
+          <input id="customRating" type="number" step="0.1" min="1" max="10" required value="8.0">
+        </div>
+        <div class="field">
+          <label for="customPriority">Priority *</label>
+          <select id="customPriority" required>
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="customDesc">Short Description *</label>
+        <textarea id="customDesc" rows="2" required placeholder="Why do you want to watch this movie?"></textarea>
+      </div>
+      <div class="actions">
+        <button type="submit" class="primary">Save to IndexedDB</button>
+        <button type="button" class="secondary" id="cancelCustomBtn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TMDB POSTER SETUP MODAL -->
+<div class="modalback" id="tmdbModalBack" role="dialog" aria-modal="true" aria-labelledby="tmdbModalHeading">
+  <div class="modal">
+    <button class="close" id="closeTmdbModal" aria-label="Close TMDB setup">×</button>
+    <div class="eyebrow">OPTIONAL LIVE ARTWORK</div>
+    <h2 id="tmdbModalHeading">TMDB Poster Setup</h2>
+    <p style="font-size:13px">Paste a free <strong>TMDB API Read Access Token</strong> to load official movie poster images from TMDB's CDN. Your token stays in page memory only and is never stored or uploaded.</p>
+    <form id="tmdbForm">
+      <div class="field">
+        <label for="tmdbToken">TMDB API Read Access Token *</label>
+        <input id="tmdbToken" type="password" required placeholder="eyJhbGciOiJIUzI1NiJ9...">
+      </div>
+      <div id="tmdbStatus" class="form-error" style="color:var(--green)"></div>
+      <div class="actions">
+        <button type="submit" class="primary">Connect &amp; Load Posters</button>
+        <button type="button" class="secondary" id="cancelTmdbBtn">Close</button>
+      </div>
+    </form>
+    <div class="dbnote">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+const movies=[
+{id:1,title:'Knives Out',year:2019,genre:'Mystery · Comedy',rating:'7.9',desc:'A detective investigates the mysterious death of a wealthy crime novelist.',tags:'mystery suspense funny twist',poster:1},
+{id:2,title:'The Truman Show',year:1998,genre:'Drama · Sci-Fi',rating:'8.2',desc:'A man slowly discovers that his picture-perfect life may be one giant production.',tags:'thought provoking twist sci-fi',poster:2},
+{id:3,title:'Spider-Man: Into the Spider-Verse',year:2018,genre:'Animation · Action',rating:'8.4',desc:'Miles Morales discovers what it means to be a hero across multiple dimensions.',tags:'action funny adventure superhero',poster:3},
+{id:4,title:'Get Out',year:2017,genre:'Horror · Mystery',rating:'7.8',desc:"A weekend visit with his girlfriend's family turns into a disturbing mystery.",tags:'suspense mystery scary twist horror',poster:4},
+{id:5,title:'The Grand Budapest Hotel',year:2014,genre:'Comedy · Adventure',rating:'8.1',desc:'A legendary concierge and his protégé become wrapped up in an unusual caper.',tags:'funny lighthearted adventure',poster:5},
+{id:6,title:'Interstellar',year:2014,genre:'Sci-Fi · Drama',rating:'8.7',desc:'A team travels beyond this galaxy to find a future for humanity.',tags:'sci-fi adventure emotional space',poster:6},
+{id:7,title:'Crazy Rich Asians',year:2018,genre:'Romance · Comedy',rating:'6.9',desc:"A woman discovers her boyfriend's family is wealthier and more complicated than expected.",tags:'romance funny lighthearted',poster:7},
+{id:8,title:'The Prestige',year:2006,genre:'Thriller · Drama',rating:'8.5',desc:'Two rival magicians become consumed by a dangerous competition.',tags:'suspense mystery twist thriller',poster:8},
+{id:9,title:'Inception',year:2010,genre:'Sci-Fi · Thriller',rating:'8.8',desc:"A thief enters people's dreams to steal secrets and attempt an impossible task.",tags:'mind bending twist sci-fi suspense thriller',poster:16},
+{id:10,title:'Parasite',year:2019,genre:'Thriller · Drama',rating:'8.5',desc:'A struggling family finds its way into a wealthy household with unexpected consequences.',tags:'twist suspense dark comedy mystery',poster:1},
+{id:11,title:'Everything Everywhere All at Once',year:2022,genre:'Sci-Fi · Adventure',rating:'7.8',desc:'An overwhelmed woman discovers she may be the key to saving the multiverse.',tags:'sci-fi funny action emotional adventure',poster:16},
+{id:12,title:'The Dark Knight',year:2008,genre:'Action · Crime',rating:'9.0',desc:'Batman faces a criminal mastermind who pushes Gotham into chaos.',tags:'action superhero crime suspense',poster:3},
+{id:13,title:'Arrival',year:2016,genre:'Sci-Fi · Drama',rating:'7.9',desc:'A linguist is recruited to communicate with mysterious visitors from beyond Earth.',tags:'sci-fi thoughtful emotional mystery',poster:6},
+{id:14,title:'Whiplash',year:2014,genre:'Drama · Music',rating:'8.5',desc:'A young drummer is pushed to his limits by a demanding instructor.',tags:'intense emotional drama ambition',poster:8},
+{id:15,title:'La La Land',year:2016,genre:'Romance · Musical',rating:'8.0',desc:'An aspiring actor and a jazz musician fall in love while chasing their dreams.',tags:'romance musical funny emotional',poster:7},
+{id:16,title:'The Lighthouse',year:2019,genre:'Horror · Thriller',rating:'7.4',desc:'Two lighthouse keepers descend into paranoia on a remote island.',tags:'horror suspense creepy psychological',poster:9},
+{id:17,title:'Blade Runner 2049',year:2017,genre:'Sci-Fi · Thriller',rating:'8.0',desc:'A new blade runner uncovers a secret that could change society.',tags:'sci-fi mystery futuristic suspense',poster:10},
+{id:18,title:'Coco',year:2017,genre:'Animation · Family',rating:'8.4',desc:"A young musician journeys to the Land of the Dead to uncover his family's history.",tags:'family heartwarming emotional adventure',poster:11},
+{id:19,title:'Dune: Part Two',year:2024,genre:'Sci-Fi · Adventure',rating:'8.5',desc:'Paul Atreides unites with the Fremen while facing the future of Arrakis.',tags:'sci-fi action adventure epic',poster:12},
+{id:20,title:'The Social Network',year:2010,genre:'Drama',rating:'7.8',desc:'The creation of a global social network sparks ambition, conflict, and lawsuits.',tags:'drama ambition technology true story',poster:13},
+{id:21,title:'Baby Driver',year:2017,genre:'Action · Crime',rating:'7.6',desc:'A talented getaway driver tries to leave a life of crime behind.',tags:'action fast paced music crime',poster:14},
+{id:22,title:'The Shawshank Redemption',year:1994,genre:'Drama',rating:'9.3',desc:'Two imprisoned men build an unlikely friendship over many years.',tags:'emotional hopeful drama friendship',poster:15},
+{id:23,title:'Jaws',year:1975,genre:'Thriller · Adventure',rating:'8.1',desc:'A seaside town faces danger when a great white shark begins attacking swimmers.',tags:'thriller suspense scary adventure',poster:15},
+{id:24,title:'The Matrix',year:1999,genre:'Sci-Fi · Action',rating:'8.7',desc:'A computer hacker learns that reality is not what it seems.',tags:'sci-fi action mind bending twist',poster:16},
+{id:25,title:'Little Women',year:2019,genre:'Drama · Romance',rating:'7.8',desc:'Four sisters navigate love, ambition, and growing up in 19th-century America.',tags:'romance emotional family drama',poster:7},
+{id:26,title:'Knocked Up',year:2007,genre:'Comedy · Romance',rating:'6.9',desc:'An unexpected encounter turns into an unpredictable relationship.',tags:'funny comedy romance lighthearted',poster:2},
+{id:27,title:'The Batman',year:2022,genre:'Crime · Mystery',rating:'7.8',desc:'A young vigilante investigates corruption and a series of riddles in Gotham.',tags:'dark mystery detective crime suspense',poster:1},
+{id:28,title:'The Martian',year:2015,genre:'Sci-Fi · Adventure',rating:'8.0',desc:'An astronaut stranded on Mars uses science and humor to survive.',tags:'sci-fi funny space adventure',poster:6},
+{id:29,title:'The Menu',year:2022,genre:'Thriller · Comedy',rating:'7.2',desc:'A couple visits an exclusive restaurant where the evening takes a sinister turn.',tags:'dark comedy suspense twist thriller',poster:4},
+{id:30,title:'The Secret Life of Walter Mitty',year:2013,genre:'Adventure · Comedy',rating:'7.3',desc:'A daydreaming photo editor embarks on a real-world adventure.',tags:'adventure funny uplifting travel',poster:5},
+{id:31,title:'Her',year:2013,genre:'Romance · Sci-Fi',rating:'8.0',desc:'A lonely writer develops an unexpected connection with an advanced operating system.',tags:'romance sci-fi emotional thoughtful',poster:10},
+{id:32,title:'Nope',year:2022,genre:'Horror · Sci-Fi',rating:'6.8',desc:'Two siblings witness something terrifying in the skies above their ranch.',tags:'horror sci-fi suspense mysterious',poster:9}
+];
+
+let db;
+let currentResults = [...movies];
+let currentView = 'grid';
+let highlightedId = null;
+let reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let physicsCleanup = null;
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// IndexedDB Setup
+const openReq = indexedDB.open('MovieMatchDB', 1);
+openReq.onupgradeneeded = e => {
+  const d = e.target.result;
+  if(!d.objectStoreNames.contains('watchlist')){
+    d.createObjectStore('watchlist', {keyPath:'id'});
+  }
+};
+openReq.onsuccess = e => {
+  db = e.target.result;
+  renderWatchlist();
+};
+openReq.onerror = () => alert('Database could not be opened. Try a current version of Chrome, Edge, or Firefox.');
+
+function transaction(mode='readonly'){
+  return db.transaction('watchlist', mode).objectStore('watchlist');
+}
+function getSaved(){
+  return new Promise((resolve, reject) => {
+    if(!db) return resolve([]);
+    const r = transaction().getAll();
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+async function saveMovie(id){
+  const m = movies.find(x => x.id === id);
+  if(!m) return;
+  const existing = (await getSaved()).find(x => x.id === id);
+  if(existing){
+    showToast(`"${m.title}" is already in your watchlist.`);
+    return;
+  }
+  const record = {
+    ...m,
+    status: 'To Watch',
+    watched: false,
+    priority: 'Medium',
+    personalRating: '',
+    notes: '',
+    savedAt: Date.now()
+  };
+  transaction('readwrite').add(record).onsuccess = () => {
+    renderWatchlist();
+    showToast(`Added "${m.title}" to Watchlist!`);
+  };
+}
+
+async function toggleWatched(id){
+  const all = await getSaved();
+  const m = all.find(x => x.id === id);
+  if(!m) return;
+  const nowWatched = !(m.watched || m.status === 'Watched');
+  m.watched = nowWatched;
+  m.status = nowWatched ? 'Watched' : 'To Watch';
+  transaction('readwrite').put(m).onsuccess = () => {
+    renderWatchlist();
+    showToast(nowWatched ? `Marked "${m.title}" as Watched.` : `Moved "${m.title}" back to To Watch.`);
+  };
+}
+
+function deleteMovie(id){
+  if(!confirm('Remove this movie from your watchlist?')) return;
+  transaction('readwrite').delete(id).onsuccess = () => {
+    renderWatchlist();
+    showToast('Removed from Watchlist.');
+  };
+}
+
+async function openEditModal(id){
+  const all = await getSaved();
+  const m = all.find(x => x.id === id);
+  if(!m) return;
+  document.getElementById('editMovieId').value = m.id;
+  document.getElementById('editModalHeading').textContent = `Edit: ${m.title}`;
+  document.getElementById('editStatus').value = m.status || (m.watched ? 'Watched' : 'To Watch');
+  document.getElementById('editPriority').value = m.priority || 'Medium';
+  document.getElementById('editPersonalRating').value = m.personalRating || '';
+  document.getElementById('editNotes').value = m.notes || '';
+  document.getElementById('editModalBack').classList.add('show');
+}
+
+document.getElementById('editWatchlistForm').onsubmit = async e => {
+  e.preventDefault();
+  const id = Number(document.getElementById('editMovieId').value);
+  const all = await getSaved();
+  const m = all.find(x => x.id === id);
+  if(!m) return;
+  m.status = document.getElementById('editStatus').value;
+  m.watched = m.status === 'Watched';
+  m.priority = document.getElementById('editPriority').value;
+  m.personalRating = document.getElementById('editPersonalRating').value;
+  m.notes = document.getElementById('editNotes').value.trim();
+  transaction('readwrite').put(m).onsuccess = () => {
+    document.getElementById('editModalBack').classList.remove('show');
+    renderWatchlist();
+    showToast(`Updated "${m.title}" in IndexedDB.`);
+  };
+};
+
+document.getElementById('customMovieForm').onsubmit = e => {
+  e.preventDefault();
+  const title = document.getElementById('customTitle').value.trim();
+  const year = Number(document.getElementById('customYear').value);
+  const genre = document.getElementById('customGenre').value;
+  const rating = Number(document.getElementById('customRating').value).toFixed(1);
+  const priority = document.getElementById('customPriority').value;
+  const desc = document.getElementById('customDesc').value.trim();
+  if(!title || !desc) return;
+  const record = {
+    id: Date.now(),
+    title,
+    year,
+    genre,
+    rating,
+    desc,
+    tags: genre.toLowerCase(),
+    status: 'To Watch',
+    watched: false,
+    priority,
+    personalRating: '',
+    notes: 'Custom entry added by user.',
+    savedAt: Date.now()
+  };
+  transaction('readwrite').add(record).onsuccess = () => {
+    document.getElementById('customMovieForm').reset();
+    document.getElementById('customModalBack').classList.remove('show');
+    renderWatchlist();
+    showToast(`Saved "${title}" to IndexedDB!`);
+  };
+};
+
+function movieEmoji(m){
+  const t = ((m.tags||'') + ' ' + (m.genre||'') + ' ' + (m.title||'')).toLowerCase();
+  if(/horror|scary|creepy/.test(t)) return '👁️';
+  if(/space|sci-fi|science fiction|alien|future/.test(t)) return '🚀';
+  if(/romance|love|relationship/.test(t)) return '💛';
+  if(/comedy|funny|lighthearted/.test(t)) return '🎭';
+  if(/mystery|detective|crime|thriller|suspense/.test(t)) return '🕵️';
+  if(/animation|family/.test(t)) return '✨';
+  if(/music|musical/.test(t)) return '🎵';
+  if(/action|adventure|superhero/.test(t)) return '⚡';
+  return '🎬';
+}
+
+function card(m, saved=false){
+  const emoji = movieEmoji(m);
+  const status = m.status || (m.watched ? 'Watched' : 'To Watch');
+  const priority = m.priority || 'Medium';
+  const imgTag = m.posterUrl ? `<img src="${escapeHtml(m.posterUrl)}" alt="${escapeHtml(m.title)} poster" loading="lazy">` : '';
+  const isHighlighted = !saved && highlightedId === m.id;
+  return `<article class="movie ${isHighlighted ? 'highlighted' : ''}" data-id="${m.id}">
+    <div class="poster">
+      ${imgTag}
+      ${!imgTag ? `<span class="emoji" aria-hidden="true">${emoji}</span>` : ''}
+      ${saved ? `<span class="badge">${escapeHtml(priority)} · ${escapeHtml(status)}</span>` : ''}
+      <span class="rating">★ ${escapeHtml(m.rating)}</span>
+      <span class="postername">${escapeHtml(m.title)}</span>
+    </div>
+    <div class="moviebody">
+      <h3>${escapeHtml(m.title)}</h3>
+      <div class="meta">${escapeHtml(m.year)} · ${escapeHtml(m.genre)}${saved && m.personalRating ? ` · Your rating: ${escapeHtml(m.personalRating)}` : ''}</div>
+      <p class="desc">${escapeHtml(m.desc)}</p>
+      ${saved && m.notes ? `<div class="user-note"><strong>Note:</strong> ${escapeHtml(m.notes)}</div>` : ''}
+      <div class="actions">
+        <button type="button" onclick="details(${m.id}, ${saved})">Details</button>
+        ${saved
+          ? `<button type="button" onclick="toggleWatched(${m.id})">${status==='Watched' ? 'Watched ✓' : 'Mark Watched'}</button>
+             <button type="button" class="save" onclick="openEditModal(${m.id})">Edit</button>
+             <button type="button" class="danger" onclick="deleteMovie(${m.id})">Remove</button>`
+          : `<button type="button" class="save" onclick="saveMovie(${m.id})">＋ Watchlist</button>`
+        }
+      </div>
+    </div>
+  </article>`;
+}
+
+function renderMovies(list){
+  currentResults = list;
+  const grid = document.getElementById('recommendations');
+  document.getElementById('resultCount').textContent = `${list.length} movie${list.length===1?'':'s'}`;
+  if(!list.length){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <strong>No matching movies found.</strong><br>
+      Try broadening your mood description or resetting the Genre, Era, or Rating filters.
+    </div>`;
+    stopPhysics();
+    document.getElementById('physicsStage').innerHTML = '<div class="empty" style="margin:40px">No posters to display for the current filter.</div>';
+    return;
+  }
+  grid.innerHTML = list.map(m => card(m, false)).join('');
+  if(currentView === 'physics'){
+    startPhysicsWall(list.slice(0, 15));
+  }
+}
+
+async function renderWatchlist(){
+  if(!db) return;
+  const all = await getSaved();
+  const filter = document.getElementById('watchlistFilter').value;
+  const filtered = all.filter(m => {
+    const status = m.status || (m.watched ? 'Watched' : 'To Watch');
+    if(filter === 'all') return true;
+    if(filter === 'High') return (m.priority || 'Medium') === 'High';
+    return status === filter;
+  });
+
+  document.getElementById('savedMovies').innerHTML = filtered.length
+    ? filtered.map(m => card(m, true)).join('')
+    : `<div class="empty" style="grid-column:1/-1">${all.length ? 'No saved movies match this filter.' : 'Your watchlist is empty. Head to Discover and save a movie, or click "+ Add Custom Movie".'}</div>`;
+
+  const watchedCount = all.filter(m => m.watched || m.status === 'Watched').length;
+  const highCount = all.filter(m => m.priority === 'High').length;
+  document.getElementById('savedStat').textContent = all.length;
+  document.getElementById('toWatchStat').textContent = all.length - watchedCount;
+  document.getElementById('watchedStat').textContent = watchedCount;
+  document.getElementById('highPriorityStat').textContent = highCount;
+  document.getElementById('navcount').textContent = all.length ? `(${all.length})` : '';
+}
+
+function normalizeText(s){
+  return s.toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+}
+function editDistance(a,b){
+  const row = Array.from({length:b.length+1}, (_,i)=>i);
+  for(let i=1;i<=a.length;i++){
+    let prev = row[0];
+    row[0] = i;
+    for(let j=1;j<=b.length;j++){
+      const temp = row[j];
+      row[j] = Math.min(row[j]+1, row[j-1]+1, prev + (a[i-1]===b[j-1] ? 0 : 1));
+      prev = temp;
+    }
+  }
+  return row[b.length];
+}
+
+function applyDropdownFilters(list){
+  const genre = document.getElementById('genreFilter').value;
+  const decade = document.getElementById('decadeFilter').value;
+  const minRating = parseFloat(document.getElementById('ratingFilter').value) || 0;
+  const sortBy = document.getElementById('sortFilter').value;
+
+  let out = list.filter(m => {
+    if(genre !== 'all' && !m.genre.toLowerCase().includes(genre)) return false;
+    if(decade === '2020s' && m.year < 2020) return false;
+    if(decade === '2010s' && (m.year < 2010 || m.year > 2019)) return false;
+    if(decade === '2000s' && (m.year < 2000 || m.year > 2009)) return false;
+    if(decade === 'classic' && m.year >= 2000) return false;
+    if(parseFloat(m.rating) < minRating) return false;
+    return true;
+  });
+
+  if(sortBy === 'rating') out.sort((a,b) => parseFloat(b.rating) - parseFloat(a.rating));
+  else if(sortBy === 'newest') out.sort((a,b) => b.year - a.year);
+  else if(sortBy === 'title') out.sort((a,b) => a.title.localeCompare(b.title));
+  return out;
+}
+
+function runSearch(requireInput=false){
+  const inputEl = document.getElementById('mood');
+  const errEl = document.getElementById('searchError');
+  const raw = inputEl.value.trim();
+
+  if(requireInput && !raw){
+    inputEl.classList.add('invalid');
+    errEl.textContent = 'Please enter a mood, genre, or movie description before searching (or click "Surprise Me").';
+    inputEl.focus();
+    return;
+  }
+  inputEl.classList.remove('invalid');
+  errEl.textContent = '';
+
+  const banner = document.getElementById('loadingBanner');
+  banner.classList.add('show');
+
+  setTimeout(() => {
+    banner.classList.remove('show');
+    highlightedId = null;
+
+    if(!raw){
+      const filtered = applyDropdownFilters([...movies]);
+      document.getElementById('resultsTitle').textContent = 'Popular picks';
+      renderMovies(filtered);
+      return;
+    }
+
+    const q = normalizeText(raw);
+    const groups = [
+      {keys:['funny','comedy','hilarious','laugh','humor','humorous','goofy','silly','lighthearted'],terms:['funny','comedy','lighthearted'],weight:3},
+      {keys:['twist','twisty','ending','unexpected','surprise','shocking','mindblowing','mind bending','plot'],terms:['twist','mind bending','mystery'],weight:3.5},
+      {keys:['suspense','suspenseful','tense','thrilling','thriller','gripping','edge'],terms:['suspense','thriller','mystery'],weight:3},
+      {keys:['scary','horror','terrifying','creepy','frightening','spooky'],terms:['horror','scary','creepy'],weight:3},
+      {keys:['romance','romantic','love','relationship','date','dating'],terms:['romance','romantic','love'],weight:3},
+      {keys:['space','future','scifi','science fiction','alien','robots','technology'],terms:['sci fi','space','futuristic'],weight:3},
+      {keys:['action','fight','fighting','superhero','hero','adventure','explosive','fast paced'],terms:['action','adventure','superhero'],weight:2.7},
+      {keys:['emotional','sad','heartwarming','deep','meaningful','thought provoking','moving','cry'],terms:['emotional','drama','heartwarming'],weight:2.8},
+      {keys:['mystery','detective','crime','investigation','secret','mysterious','whodunit'],terms:['mystery','detective','crime'],weight:3},
+      {keys:['inspiring','motivational','uplifting','feel good','positive'],terms:['uplifting','hopeful','heartwarming'],weight:3},
+      {keys:['dark','disturbing','psychological','mind','intense'],terms:['dark','psychological','intense'],weight:2.2},
+      {keys:['friendship','friends','family','coming of age'],terms:['friendship','family'],weight:2.5}
+    ];
+    const negatives = [];
+    const negativePatterns = [
+      {re:/not too scary|not scary|less scary|without horror|no horror|avoid horror|not horror/,terms:['horror','scary','creepy']},
+      {re:/not funny|no comedy|without comedy/,terms:['funny','comedy']},
+      {re:/not romantic|no romance|without romance/,terms:['romance','romantic']},
+      {re:/not sad|no drama|without drama/,terms:['sad','emotional','drama']}
+    ];
+    negativePatterns.forEach(n => { if(n.re.test(q)) negatives.push(...n.terms); });
+
+    const cleaned = q.replace(/\b(not|no|without|avoid|less|too|very|really|kind|sort|of|something|some|movie|movies|film|films|looking|want|like|give|find|me|for|a|an|the|and|but|with|that|this|thats|its|is|are|to|be|about|please|show)\b/g,' ').replace(/\s+/g,' ').trim();
+    const queryTokens = cleaned.split(' ').filter(w => w.length > 2);
+    const active = groups.filter(g => g.keys.some(k => q.includes(k)));
+
+    const ranked = movies.map(m => {
+      const hay = normalizeText([m.title, m.genre, m.desc, m.tags].join(' '));
+      const tokens = hay.split(' ');
+      let score = 0;
+      if(q.includes(normalizeText(m.title))) score += 9;
+      active.forEach(g => { if(g.terms.some(term => hay.includes(normalizeText(term)))) score += g.weight; });
+      queryTokens.forEach(w => {
+        if(tokens.includes(w)) score += 1.8;
+        else if(tokens.some(t => t.length > 3 && w.length > 3 && editDistance(w, t) === 1)) score += 0.65;
+      });
+      negatives.forEach(n => { if(n.split(' ').some(term => hay.includes(term))) score -= 5; });
+      if(active.length > 1){
+        const matched = active.filter(g => g.terms.some(term => hay.includes(normalizeText(term)))).length;
+        score += matched * 1.25;
+        if(matched === active.length) score += 2.5;
+      }
+      return {m, score};
+    }).sort((a,b) => b.score - a.score);
+
+    const threshold = active.length ? 2.0 : 1.5;
+    // Target 10-15 posters per SRS FR#8
+    let found = ranked.filter(x => x.score >= threshold).slice(0, 15).map(x => x.m);
+    found = applyDropdownFilters(found);
+
+    document.getElementById('resultsTitle').textContent = found.length
+      ? `Best matches for “${raw}”`
+      : 'No close matches found';
+    renderMovies(found);
+  }, reducedMotion ? 40 : 240);
+}
+
+// Surprise Me (SRS FR#16)
+function surpriseMe(){
+  const pool = currentResults.length ? currentResults : movies;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  if(!pick) return;
+  highlightedId = pick.id;
+  if(currentView === 'grid'){
+    renderMovies(currentResults.length ? currentResults : movies);
+  }
+  details(pick.id, false, true);
+  showToast(`Surprise Me picked "${pick.title}"!`);
+}
+
+// Movie Details Modal
+async function details(id, fromWatchlist=false, isSurprise=false){
+  let m = movies.find(x => x.id === id);
+  if(fromWatchlist || !m){
+    const all = await getSaved();
+    m = all.find(x => x.id === id) || m;
+  }
+  if(!m) return;
+  document.getElementById('modalEyebrow').textContent = isSurprise ? '🎲 SURPRISE ME PICK' : 'MOVIE DETAILS';
+  document.getElementById('modalTitle').textContent = m.title;
+  document.getElementById('modalMeta').textContent = `${m.year} · ${m.genre} · ★ ${m.rating}`;
+  document.getElementById('modalDesc').textContent = m.desc || 'No synopsis available from provider.';
+  const tags = (m.tags || '').split(' ').filter(Boolean);
+  document.getElementById('modalTags').innerHTML = tags.map(t => `<span class="chip" style="cursor:default">#${escapeHtml(t)}</span>`).join('');
+  document.getElementById('modalActions').innerHTML = fromWatchlist
+    ? `<button type="button" class="primary" onclick="document.getElementById('modalback').classList.remove('show');openEditModal(${m.id})">Edit Watchlist Entry</button>`
+    : `<button type="button" class="primary" onclick="saveMovie(${m.id})">＋ Save to Watchlist</button>`;
+  document.getElementById('modalback').classList.add('show');
+}
+
+// Matter.js Interactive Physics Poster Wall (SRS FR#20-FR#25)
+function stopPhysics(){
+  if(physicsCleanup){
+    physicsCleanup();
+    physicsCleanup = null;
+  }
+}
+
+function startPhysicsWall(list){
+  stopPhysics();
+  const stage = document.getElementById('physicsStage');
+  stage.innerHTML = '';
+
+  if(typeof Matter === 'undefined'){
+    stage.innerHTML = `<div class="empty" style="margin:40px">
+      <strong>Physics engine unavailable offline.</strong><br>
+      You can continue browsing smoothly using the Accessible Grid View.
+    </div>`;
+    return;
+  }
+
+  const width = stage.clientWidth || 900;
+  const height = stage.clientHeight || 540;
+  const {Engine, Bodies, Composite, Mouse, MouseConstraint, Events} = Matter;
+  const engine = Engine.create();
+  engine.gravity.y = reducedMotion ? 0.15 : 0.85;
+
+  const wallThickness = 60;
+  const walls = [
+    Bodies.rectangle(width/2, height + wallThickness/2, width + 100, wallThickness, {isStatic:true}),
+    Bodies.rectangle(-wallThickness/2, height/2, wallThickness, height*2, {isStatic:true}),
+    Bodies.rectangle(width + wallThickness/2, height/2, wallThickness, height*2, {isStatic:true}),
+    Bodies.rectangle(width/2, -wallThickness*2, width + 100, wallThickness, {isStatic:true})
+  ];
+  Composite.add(engine.world, walls);
+
+  const cardW = 128, cardH = 184;
+  const items = list.map((m, idx) => {
+    const cols = Math.max(2, Math.floor((width - 40) / 145));
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+    const x = 90 + col * ((width - 180) / Math.max(1, cols - 1)) + (Math.random()*16 - 8);
+    const y = -60 - row * 190 - Math.random()*50;
+    const body = Bodies.rectangle(x, y, cardW, cardH, {
+      restitution: reducedMotion ? 0.1 : 0.35,
+      friction: 0.25,
+      frictionAir: 0.015,
+      angle: (Math.random() - 0.5) * 0.22
+    });
+    const el = document.createElement('div');
+    el.className = 'phys-card';
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-label', `${m.title} (${m.year}), rated ${m.rating}. Press Enter for details.`);
+    el.innerHTML = `
+      ${m.posterUrl ? `<img src="${escapeHtml(m.posterUrl)}" alt="">` : `<div class="p-emoji">${movieEmoji(m)}</div>`}
+      <span class="p-rate">★ ${escapeHtml(m.rating)}</span>
+      <div class="p-title">${escapeHtml(m.title)}</div>
+      <div class="p-year">${escapeHtml(m.year)}</div>
+    `;
+    let downPos = null;
+    el.addEventListener('pointerdown', ev => { downPos = {x: ev.clientX, y: ev.clientY}; });
+    el.addEventListener('pointerup', ev => {
+      if(downPos && Math.hypot(ev.clientX - downPos.x, ev.clientY - downPos.y) < 8){
+        details(m.id, false);
+      }
+      downPos = null;
+    });
+    el.addEventListener('keydown', ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); details(m.id, false); }});
+    stage.appendChild(el);
+    return {body, el};
+  });
+
+  Composite.add(engine.world, items.map(i => i.body));
+
+  const mouse = Mouse.create(stage);
+  const mouseConstraint = MouseConstraint.create(engine, {
+    mouse,
+    constraint: {stiffness: 0.22, render: {visible: false}}
+  });
+  Composite.add(engine.world, mouseConstraint);
+
+  let rafId;
+  function tick(){
+    Engine.update(engine, 1000/60);
+    for(const {body, el} of items){
+      el.style.transform = `translate(${body.position.x - cardW/2}px, ${body.position.y - cardH/2}px) rotate(${body.angle}rad)`;
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+  rafId = requestAnimationFrame(tick);
+
+  physicsCleanup = () => {
+    cancelAnimationFrame(rafId);
+    Composite.clear(engine.world, false);
+    Engine.clear(engine);
+  };
+}
+
+function setViewMode(mode){
+  currentView = mode;
+  document.getElementById('gridViewBtn').classList.toggle('active', mode === 'grid');
+  document.getElementById('physicsViewBtn').classList.toggle('active', mode === 'physics');
+  document.getElementById('physicsWrap').classList.toggle('active', mode === 'physics');
+  document.getElementById('recommendations').style.display = mode === 'grid' ? 'grid' : 'none';
+  if(mode === 'physics'){
+    startPhysicsWall(currentResults.slice(0, 15));
+  } else {
+    stopPhysics();
+  }
+}
+
+// Optional TMDB Poster Loader
+document.getElementById('tmdbForm').onsubmit = async e => {
+  e.preventDefault();
+  const token = document.getElementById('tmdbToken').value.trim();
+  const statusEl = document.getElementById('tmdbStatus');
+  if(!token) return;
+  statusEl.style.color = '#ffe7a0';
+  statusEl.textContent = 'Connecting to TMDB and fetching posters...';
+  let loaded = 0;
+  try {
+    for(const m of movies){
+      const url = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(m.title)}&year=${m.year}`;
+      const res = await fetch(url, {headers: {Authorization: `Bearer ${token}`, accept: 'application/json'}});
+      if(res.status === 401) throw new Error('Invalid TMDB Read Access Token (401 Unauthorized).');
+      if(res.status === 429) throw new Error('TMDB rate limit reached (429). Try again shortly.');
+      if(!res.ok) continue;
+      const data = await res.json();
+      const first = data.results && data.results.find(r => r.poster_path);
+      if(first){
+        m.posterUrl = `https://image.tmdb.org/t/p/w500${first.poster_path}`;
+        loaded++;
+      }
+    }
+    statusEl.style.color = 'var(--green)';
+    statusEl.textContent = `Loaded ${loaded} live posters from TMDB!`;
+    renderMovies(currentResults);
+    showToast(`Loaded ${loaded} live TMDB posters!`);
+  } catch(err){
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = err.message || 'Unable to connect to TMDB.';
+  }
+};
+
+function switchPage(page){
+  document.querySelectorAll('nav button[data-page]').forEach(x => x.classList.toggle('active', x.dataset.page === page));
+  document.querySelectorAll('.page').forEach(x => x.classList.toggle('active', x.id === page));
+  if(page === 'watchlist'){
+    stopPhysics();
+    renderWatchlist();
+  } else if(currentView === 'physics'){
+    startPhysicsWall(currentResults.slice(0, 15));
+  }
+}
+
+function updateMotionUI(){
+  document.body.classList.toggle('reduced-motion', reducedMotion);
+  const btn = document.getElementById('motionToggleBtn');
+  btn.textContent = `Reduced Motion: ${reducedMotion ? 'On' : 'Off'}`;
+  btn.classList.toggle('on', reducedMotion);
+  btn.setAttribute('aria-pressed', String(reducedMotion));
+}
+
+// Event Wiring
+document.getElementById('findbtn').onclick = () => runSearch(true);
+document.getElementById('mood').addEventListener('keydown', e => { if(e.key === 'Enter') runSearch(true); });
+document.getElementById('surpriseBtn').onclick = surpriseMe;
+document.getElementById('refreshBtn').onclick = () => {
+  const shuffled = [...currentResults].sort(() => Math.random() - 0.5);
+  renderMovies(shuffled);
+  showToast('Shuffled current results.');
+};
+document.getElementById('clearSearchBtn').onclick = () => {
+  document.getElementById('mood').value = '';
+  document.getElementById('genreFilter').value = 'all';
+  document.getElementById('decadeFilter').value = 'all';
+  document.getElementById('ratingFilter').value = '0';
+  document.getElementById('sortFilter').value = 'match';
+  runSearch(false);
+};
+
+['genreFilter','decadeFilter','ratingFilter','sortFilter'].forEach(id => {
+  document.getElementById(id).onchange = () => runSearch(false);
+});
+document.getElementById('watchlistFilter').onchange = renderWatchlist;
+
+document.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+  document.getElementById('mood').value = b.dataset.prompt;
+  runSearch(true);
+});
+document.querySelectorAll('nav button[data-page]').forEach(b => b.onclick = () => switchPage(b.dataset.page));
+
+document.getElementById('gridViewBtn').onclick = () => setViewMode('grid');
+document.getElementById('physicsViewBtn').onclick = () => setViewMode('physics');
+document.getElementById('switchToGridBtn').onclick = () => setViewMode('grid');
+document.getElementById('resetPhysicsBtn').onclick = () => startPhysicsWall(currentResults.slice(0, 15));
+
+document.getElementById('motionToggleBtn').onclick = () => {
+  reducedMotion = !reducedMotion;
+  updateMotionUI();
+  if(currentView === 'physics') startPhysicsWall(currentResults.slice(0, 15));
+};
+
+document.getElementById('openCustomMovieBtn').onclick = () => document.getElementById('customModalBack').classList.add('show');
+document.getElementById('posterSetupBtn').onclick = () => document.getElementById('tmdbModalBack').classList.add('show');
+
+// Modal close handlers
+[
+  ['modalback','closemodal'],
+  ['editModalBack','closeEditModal','cancelEditBtn'],
+  ['customModalBack','closeCustomModal','cancelCustomBtn'],
+  ['tmdbModalBack','closeTmdbModal','cancelTmdbBtn']
+].forEach(([backId, ...btnIds]) => {
+  const back = document.getElementById(backId);
+  back.onclick = e => { if(e.target === back) back.classList.remove('show'); };
+  btnIds.forEach(btnId => {
+    document.getElementById(btnId).onclick = () => back.classList.remove('show');
+  });
+});
+
+updateMotionUI();
+renderMovies(movies);
+</script>
+</body>
+</html>
