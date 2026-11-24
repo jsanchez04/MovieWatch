@@ -1,32 +1,50 @@
-MOVIEMATCH — PROTOTYPE RELEASE 
+# 🎬 MovieMatch — Application Design Prototype
+**Less scrolling. More watching.**
 
-CONTENTS
-- index.html: responsive MovieMatch dynamic web application with Matter.js physics poster wall, natural-language search, filter dropdowns, Surprise Me, optional TMDB poster integration, and IndexedDB watchlist CRUD.
-- contribution_summary.txt: team contribution record for Assignment #4.
-- demo_video_script.txt: 2 to 3 minute screen recording walkthrough script.
+MovieMatch is a dynamic movie discovery web application built for Towson University's Software Engineering course. It reduces streaming decision fatigue by combining natural-language mood search, an interactive **Matter.js** physics poster wall, and a persistent **IndexedDB** watchlist.
 
-HOW TO RUN
-- Online (Recommended): Open the deployed GitHub Pages URL in any modern desktop or mobile browser.
-- Local: Extract the ZIP and open index.html in Chrome, Edge, Firefox, or Safari. (Internet connection enables the Matter.js CDN for the Physics Poster Wall; Grid View works completely offline.)
+🌐 **Live Demo:** https://jsanchez04.github.io/MovieWatch/
 
-CORE FUNCTIONALITY (SRS ALIGNED)
-- Natural-language mood search with required input validation and loading feedback (FR#1-FR#6, FR#26).
-- Data controls: Genre, Release Era, Min Rating, and Sort By dropdown filters.
-- Target 10-15 search results with Shuffle Results and Show All options (FR#8, FR#18).
-- Interactive Matter.js Physics Poster Wall with drag/drop + Accessible Grid View toggle + Reduced Motion toggle (FR#20-FR#25, FR#39).
-- "Surprise Me" random movie picker (FR#16).
-- Movie detail modal with tags and one-click Watchlist save (FR#14).
-- IndexedDB Database ("MovieMatchDB") with full CRUD:
-  * CREATE: Save movies from Discover OR add a custom movie using the "+ Add Custom Movie" form.
-  * READ: View saved movies, live stats, and status/priority filters (persists across browser refresh).
-  * UPDATE: Toggle Watched status OR open the Edit modal to update Status, Priority, Personal Rating, and Notes.
-  * DELETE: Remove entries with confirmation prompt.
+---
 
-OPTIONAL REAL MOVIE POSTERS (TMDB)
-1. Click "Poster Setup (TMDB)" in the top navigation bar.
-2. Paste a free TMDB API Read Access Token from https://www.themoviedb.org/settings/api
-3. Click "Connect & Load Posters". The token stays in memory only and is never committed to GitHub.
+## ✨ Key Features (SRS Aligned)
 
-ATTRIBUTION & DISCLAIMER
-MovieMatch is a movie discovery prototype and does not host, stream, or guarantee streaming availability for full-length films.
-TMDB Notice: "This product uses the TMDB API but is not endorsed or certified by TMDB."
+| Feature | Description | SRS Alignment |
+| :--- | :--- | :--- |
+| **Natural-Language Search** | Describe a mood, genre, or vibe (e.g., *"funny mystery with a twist"*) with required-field validation and loading feedback. | FR#1–FR#6, FR#26 |
+| **Smart Data Controls** | Filter and sort results by **Genre**, **Release Era**, **Minimum Rating**, and **Sort Order**. | Rubric Data Controls |
+| **Interactive Physics Wall** | Drag, toss, and stack up to 15 movie posters using **Matter.js**, with an **Accessible Grid View** and **Reduced Motion** toggle. | FR#8, FR#20–FR#25, FR#39 |
+| **Surprise Me & Shuffle** | Instantly highlight and open a random movie pick or shuffle the current results. | FR#16, FR#18 |
+| **Movie Details Modal** | View synopsis, release year, genre, rating, mood tags, and one-click Watchlist saving. | FR#14 |
+| **IndexedDB Watchlist (CRUD)** | Persistent browser database (`MovieMatchDB`) supporting full Create, Read, Update, and Delete operations. | Database Requirement |
+
+---
+
+## 🗄️ Database Operations (`MovieMatchDB`)
+* **Create:** Save movies from the Discover page or click **+ Add Custom Movie** to add a new record via form validation.
+* **Read:** View saved movies, live counters, and status/priority filters (persists across page refreshes).
+* **Update:** Toggle **Mark Watched** or open the **Edit** modal to change Status, Priority, Personal Rating, and Notes.
+* **Delete:** Remove saved entries with a confirmation prompt.
+
+---
+
+## 🚀 How to Run
+1. **Online (Recommended):** Open the live link at https://jsanchez04.github.io/MovieWatch/ in any modern desktop or mobile browser.
+2. **Locally:** Download or extract the project files and open `index.html` in Chrome, Edge, Firefox, or Safari. *(An internet connection loads Matter.js for the Physics Wall; Grid View works offline.)*
+
+### Optional: Load Live Movie Posters (TMDB)
+1. Click **Poster Setup (TMDB)** in the top navigation bar.
+2. Paste a free **TMDB API Read Access Token** from [TMDB API Settings](https://www.themoviedb.org/settings/api).
+3. Click **Connect & Load Posters**. *(Your token stays in memory only and is never stored or committed to GitHub.)*
+
+---
+
+## 👥 Team
+* **Raphael Olatunde**
+* **Jeremiah Sanchez**
+* **Onyinye Ojiako**
+
+---
+
+> **Disclaimer & Attribution:** MovieMatch is an educational movie discovery prototype and does not host, stream, or guarantee streaming availability for full-length films.  
+> *This product uses the TMDB API but is not endorsed or certified by TMDB.*
