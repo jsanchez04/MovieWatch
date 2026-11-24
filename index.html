@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MovieMatch — Find your next favorite</title>
+<style>
+:root{--bg:#090a0b;--panel:#151617;--panel2:#202123;--text:#f7f4e9;--muted:#aaa79d;--accent:#f4c542;--accent2:#e6ad24;--line:#34332d;--green:#b9d6a3}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 82% 0%,#4a3915 0%,transparent 32%),var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+header{height:76px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,5vw,72px);position:sticky;top:0;background:#090a0beF;backdrop-filter:blur(16px);z-index:5}
+.brand{font-weight:850;font-size:21px;letter-spacing:-.8px}.brand span{color:var(--accent)}.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:2px;font-weight:600;margin-top:-4px}
+nav{display:flex;gap:8px}nav button{background:transparent;border:0;color:var(--muted);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:650}nav button.active,nav button:hover{background:var(--panel2);color:white}
+main{max-width:1180px;margin:auto;padding:42px 24px 80px}.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:32px;align-items:center;padding:30px 0 46px}
+.eyebrow{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase}.hero h1{font-size:clamp(36px,5vw,62px);line-height:1.03;letter-spacing:-2.8px;margin:12px 0 16px}.hero h1 em{font-style:normal;color:var(--accent)}.hero p{color:var(--muted);max-width:570px;font-size:16px}
+.promptbox{background:linear-gradient(145deg,#201d14,#141516);border:1px solid #514522;border-radius:20px;padding:20px;box-shadow:0 20px 70px #0006}.promptbox label{display:block;font-size:12px;color:#c5c9d7;font-weight:700;margin-bottom:10px}.promptrow{display:flex;gap:8px}.promptrow input{flex:1;min-width:0;background:#0b0c0d;border:1px solid var(--line);border-radius:11px;color:white;padding:14px;outline:none}.promptrow input:focus{border-color:var(--accent)}button.primary{background:linear-gradient(100deg,#f0bd32,#ffdf75);color:#17130a;border:0;border-radius:11px;padding:12px 17px;font-weight:850;cursor:pointer}button.primary:hover{filter:brightness(1.12)}.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.chip{border:1px solid var(--line);color:#b8bfd0;background:#22211c;border-radius:99px;padding:6px 10px;font-size:11px;cursor:pointer}.chip:hover{border-color:var(--accent);color:white}
+.sectionhead{display:flex;justify-content:space-between;align-items:end;margin:16px 0 18px}.sectionhead h2{margin:4px 0 0;font-size:25px;letter-spacing:-.8px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px}
+.movie{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.2s;min-width:0}.movie:hover{transform:translateY(-4px);border-color:#a8872f;box-shadow:0 14px 35px #0005}
+.poster{height:210px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,var(--glow,#6d5722),transparent 62%),linear-gradient(145deg,#26251f,#101112)}.poster:before{content:"";position:absolute;width:190px;height:190px;border:1px solid #f4c54235;border-radius:50%;box-shadow:0 0 0 22px #f4c5420a,0 0 0 48px #f4c54208}.poster .emoji{font-size:76px;z-index:1;filter:drop-shadow(0 12px 12px #0009)}.poster:after{content:"";position:absolute;inset:48% 0 0;background:linear-gradient(transparent,#000b)}.poster .postername{position:absolute;bottom:13px;left:14px;right:14px;font-weight:900;font-size:18px;line-height:1.05;text-shadow:0 2px 8px #000b;z-index:1}.rating{position:absolute;top:12px;right:12px;background:#090b12bb;padding:5px 8px;border-radius:7px;font-size:11px;font-weight:800;z-index:2}
+.moviebody{padding:14px}.moviebody h3{margin:0 0 4px;font-size:16px}.meta{color:var(--muted);font-size:11px}.desc{font-size:12px;color:#c1c6d4;min-height:38px;margin:10px 0}.actions{display:flex;gap:7px}.actions button{flex:1;border:1px solid var(--line);background:#1c2231;color:white;border-radius:8px;padding:8px 5px;font-size:11px;font-weight:750;cursor:pointer}.actions button:hover{border-color:var(--accent)}.actions .save{background:#403316;border-color:#80651f;color:#ffe7a0}
+.page{display:none}.page.active{display:block}.empty{padding:40px;text-align:center;border:1px dashed #41485b;border-radius:16px;color:var(--muted)}
+.stats{display:flex;gap:12px;margin:18px 0 28px}.stat{background:var(--panel);border:1px solid var(--line);padding:13px 17px;border-radius:12px;min-width:120px}.stat strong{display:block;font-size:22px}.stat span{font-size:11px;color:var(--muted)}
+.modalback{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.modalback.show{display:flex}.modal{max-width:470px;width:100%;background:var(--panel);border:1px solid #41465b;border-radius:18px;padding:24px;position:relative}.modal h2{margin:0 0 8px}.modal p{color:#c2c7d5}.close{position:absolute;right:15px;top:12px;background:none;border:0;color:white;font-size:23px;cursor:pointer}.dbnote{font-size:11px;color:var(--green);margin-top:18px}.footer{border-top:1px solid var(--line);margin-top:50px;padding-top:18px;color:#747d91;font-size:11px;display:flex;justify-content:space-between}
+@media(max-width:850px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){header{padding:0 14px}.brand{font-size:17px}nav button{padding:8px;font-size:12px}main{padding:24px 14px}.grid{gap:10px}.poster{height:170px}.moviebody{padding:10px}.stats{flex-wrap:wrap}}
+</style></head>
+<body>
+<header><div class="brand">Movie<span>Match</span><small>LESS SCROLLING. MORE WATCHING.</small></div><nav><button class="active" data-page="discover">Discover</button><button data-page="watchlist">My Watchlist <span id="navcount"></span></button></nav></header>
+<main>
+<section id="discover" class="page active">
+<div class="hero"><div><div class="eyebrow">Your next movie night starts here</div><h1>Stop scrolling.<br><em>Start watching.</em></h1><p>Tell MovieMatch what you're in the mood for. We'll help you find something worth pressing play on.</p></div>
+<div class="promptbox"><label for="mood">WHAT ARE YOU IN THE MOOD FOR?</label><div class="promptrow"><input id="mood" placeholder="e.g. funny mystery with an unexpected ending"><button class="primary" id="findbtn">Find movies ↗</button></div><div class="chips"><button class="chip" data-prompt="suspenseful mystery with a twist">Suspenseful mystery</button><button class="chip" data-prompt="funny and lighthearted">Funny & light</button><button class="chip" data-prompt="sci-fi space adventure">Sci-fi adventure</button><button class="chip" data-prompt="romantic comedy">Romance</button></div></div></div>
+<div class="sectionhead"><div><div class="eyebrow">Picked for your mood</div><h2 id="resultsTitle">Popular picks</h2></div><span class="muted" id="resultCount">32 movies</span></div>
+<div class="grid" id="recommendations"></div>
+</section>
+<section id="watchlist" class="page"><div class="eyebrow">Your personal collection</div><div class="sectionhead"><div><h2>My Watchlist</h2><div class="muted">Movies you want to come back to.</div></div></div><div class="stats"><div class="stat"><strong id="savedStat">0</strong><span>SAVED MOVIES</span></div><div class="stat"><strong id="watchedStat">0</strong><span>WATCHED</span></div></div><div class="grid" id="savedMovies"></div><div class="dbnote">● Your watchlist is saved in this browser's IndexedDB database.</div></section>
+<div class="footer"><span>© 2026 MovieMatch · Discover something different.</span><span>Prototype Release 1.3 · Movie discovery prototype</span></div>
+</main>
+<div class="modalback" id="modalback"><div class="modal"><button class="close" id="closemodal">×</button><div class="eyebrow">MOVIE DETAILS</div><h2 id="modalTitle"></h2><div class="meta" id="modalMeta"></div><p id="modalDesc"></p><div class="dbnote">MovieMatch helps you spend less time choosing and more time watching.</div></div></div>
+<script>
+const movies=[
+{id:1,title:'Knives Out',year:2019,genre:'Mystery · Comedy',rating:'7.9',desc:'A detective investigates the mysterious death of a wealthy crime novelist.',tags:'mystery suspense funny twist',poster:1},
+{id:2,title:'The Truman Show',year:1998,genre:'Drama · Sci-Fi',rating:'8.2',desc:'A man slowly discovers that his picture-perfect life may be one giant production.',tags:'thought provoking twist sci-fi',poster:2},
+{id:3,title:'Spider-Man: Into the Spider-Verse',year:2018,genre:'Animation · Action',rating:'8.4',desc:'Miles Morales discovers what it means to be a hero across multiple dimensions.',tags:'action funny adventure superhero',poster:3},
+{id:4,title:'Get Out',year:2017,genre:'Horror · Mystery',rating:'7.8',desc:"A weekend visit with his girlfriend's family turns into a disturbing mystery.",tags:'suspense mystery scary twist horror',poster:4},
+{id:5,title:'The Grand Budapest Hotel',year:2014,genre:'Comedy · Adventure',rating:'8.1',desc:'A legendary concierge and his protégé become wrapped up in an unusual caper.',tags:'funny lighthearted adventure',poster:5},
+{id:6,title:'Interstellar',year:2014,genre:'Sci-Fi · Drama',rating:'8.7',desc:'A team travels beyond this galaxy to find a future for humanity.',tags:'sci-fi adventure emotional space',poster:6},
+{id:7,title:'Crazy Rich Asians',year:2018,genre:'Romance · Comedy',rating:'6.9',desc:"A woman discovers her boyfriend's family is wealthier and more complicated than expected.",tags:'romance funny lighthearted',poster:7},
+{id:8,title:'The Prestige',year:2006,genre:'Thriller · Drama',rating:'8.5',desc:'Two rival magicians become consumed by a dangerous competition.',tags:'suspense mystery twist thriller',poster:8},
+{id:9,title:'Inception',year:2010,genre:'Sci-Fi · Thriller',rating:'8.8',desc:"A thief enters people's dreams to steal secrets and attempt an impossible task.",tags:'mind bending twist sci-fi suspense thriller',poster:16},
+{id:10,title:'Parasite',year:2019,genre:'Thriller · Drama',rating:'8.5',desc:'A struggling family finds its way into a wealthy household with unexpected consequences.',tags:'twist suspense dark comedy mystery',poster:1},
+{id:11,title:'Everything Everywhere All at Once',year:2022,genre:'Sci-Fi · Adventure',rating:'7.8',desc:'An overwhelmed woman discovers she may be the key to saving the multiverse.',tags:'sci-fi funny action emotional adventure',poster:16},
+{id:12,title:'The Dark Knight',year:2008,genre:'Action · Crime',rating:'9.0',desc:'Batman faces a criminal mastermind who pushes Gotham into chaos.',tags:'action superhero crime suspense',poster:3},
+{id:13,title:'Arrival',year:2016,genre:'Sci-Fi · Drama',rating:'7.9',desc:'A linguist is recruited to communicate with mysterious visitors from beyond Earth.',tags:'sci-fi thoughtful emotional mystery',poster:6},
+{id:14,title:'Whiplash',year:2014,genre:'Drama · Music',rating:'8.5',desc:'A young drummer is pushed to his limits by a demanding instructor.',tags:'intense emotional drama ambition',poster:8},
+{id:15,title:'La La Land',year:2016,genre:'Romance · Musical',rating:'8.0',desc:'An aspiring actor and a jazz musician fall in love while chasing their dreams.',tags:'romance musical funny emotional',poster:7},
+{id:16,title:'The Lighthouse',year:2019,genre:'Horror · Thriller',rating:'7.4',desc:'Two lighthouse keepers descend into paranoia on a remote island.',tags:'horror suspense creepy psychological',poster:9},
+{id:17,title:'Blade Runner 2049',year:2017,genre:'Sci-Fi · Thriller',rating:'8.0',desc:'A new blade runner uncovers a secret that could change society.',tags:'sci-fi mystery futuristic suspense',poster:10},
+{id:18,title:'Coco',year:2017,genre:'Animation · Family',rating:'8.4',desc:"A young musician journeys to the Land of the Dead to uncover his family's history.",tags:'family heartwarming emotional adventure',poster:11},
+{id:19,title:'Dune: Part Two',year:2024,genre:'Sci-Fi · Adventure',rating:'8.5',desc:'Paul Atreides unites with the Fremen while facing the future of Arrakis.',tags:'sci-fi action adventure epic',poster:12},
+{id:20,title:'The Social Network',year:2010,genre:'Drama',rating:'7.8',desc:'The creation of a global social network sparks ambition, conflict, and lawsuits.',tags:'drama ambition technology true story',poster:13},
+{id:21,title:'Baby Driver',year:2017,genre:'Action · Crime',rating:'7.6',desc:'A talented getaway driver tries to leave a life of crime behind.',tags:'action fast paced music crime',poster:14},
+{id:22,title:'The Shawshank Redemption',year:1994,genre:'Drama',rating:'9.3',desc:'Two imprisoned men build an unlikely friendship over many years.',tags:'emotional hopeful drama friendship',poster:15},
+{id:23,title:'Jaws',year:1975,genre:'Thriller · Adventure',rating:'8.1',desc:'A seaside town faces danger when a great white shark begins attacking swimmers.',tags:'thriller suspense scary adventure',poster:15},
+{id:24,title:'The Matrix',year:1999,genre:'Sci-Fi · Action',rating:'8.7',desc:'A computer hacker learns that reality is not what it seems.',tags:'sci-fi action mind bending twist',poster:16},
+{id:25,title:'Little Women',year:2019,genre:'Drama · Romance',rating:'7.8',desc:'Four sisters navigate love, ambition, and growing up in 19th-century America.',tags:'romance emotional family drama',poster:7},
+{id:26,title:'Knocked Up',year:2007,genre:'Comedy · Romance',rating:'6.9',desc:'An unexpected encounter turns into an unpredictable relationship.',tags:'funny comedy romance lighthearted',poster:2},
+{id:27,title:'The Batman',year:2022,genre:'Crime · Mystery',rating:'7.8',desc:'A young vigilante investigates corruption and a series of riddles in Gotham.',tags:'dark mystery detective crime suspense',poster:1},
+{id:28,title:'The Martian',year:2015,genre:'Sci-Fi · Adventure',rating:'8.0',desc:'An astronaut stranded on Mars uses science and humor to survive.',tags:'sci-fi funny space adventure',poster:6},
+{id:29,title:'The Menu',year:2022,genre:'Thriller · Comedy',rating:'7.2',desc:'A couple visits an exclusive restaurant where the evening takes a sinister turn.',tags:'dark comedy suspense twist thriller',poster:4},
+{id:30,title:'The Secret Life of Walter Mitty',year:2013,genre:'Adventure · Comedy',rating:'7.3',desc:'A daydreaming photo editor embarks on a real-world adventure.',tags:'adventure funny uplifting travel',poster:5},
+{id:31,title:'Her',year:2013,genre:'Romance · Sci-Fi',rating:'8.0',desc:'A lonely writer develops an unexpected connection with an advanced operating system.',tags:'romance sci-fi emotional thoughtful',poster:10},
+{id:32,title:'Nope',year:2022,genre:'Horror · Sci-Fi',rating:'6.8',desc:'Two siblings witness something terrifying in the skies above their ranch.',tags:'horror sci-fi suspense mysterious',poster:9}
+];
+let db;
+const openReq=indexedDB.open("MovieMatchDB",1);
+openReq.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains("watchlist"))d.createObjectStore("watchlist",{keyPath:"id"});};
+openReq.onsuccess=e=>{db=e.target.result;renderWatchlist();};
+openReq.onerror=()=>alert("Database could not be opened. Try a current version of Chrome, Edge, or Firefox.");
+function transaction(mode="readonly"){return db.transaction("watchlist",mode).objectStore("watchlist")}
+function getSaved(){return new Promise((resolve,reject)=>{const r=transaction().getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+async function saveMovie(id){const m=movies.find(x=>x.id===id);const existing=(await getSaved()).find(x=>x.id===id);if(existing){alert("Already in your watchlist.");return}transaction("readwrite").add({...m,watched:false,savedAt:Date.now()}).onsuccess=()=>{renderWatchlist();alert("Added to your watchlist!");};}
+async function toggleWatched(id){const all=await getSaved(),m=all.find(x=>x.id===id);if(!m)return;m.watched=!m.watched;transaction("readwrite").put(m).onsuccess=renderWatchlist;}
+function deleteMovie(id){if(!confirm("Remove this movie from your watchlist?"))return;transaction("readwrite").delete(id).onsuccess=renderWatchlist;}
+function card(m,saved=false){const emoji=movieEmoji(m);return `<article class="movie"><div class="poster"><span class="emoji" aria-hidden="true">${emoji}</span><span class="rating">★ ${m.rating}</span><span class="postername">${m.title}</span></div><div class="moviebody"><h3>${m.title}</h3><div class="meta">${m.year} · ${m.genre}</div><p class="desc">${m.desc}</p><div class="actions"><button onclick="details(${m.id})">Details</button>${saved?`<button onclick="toggleWatched(${m.id})">${m.watched?"Watched ✓":"Mark watched"}</button><button onclick="deleteMovie(${m.id})">Remove</button>`:`<button class="save" onclick="saveMovie(${m.id})">＋ Watchlist</button>`}</div></div></article>`}
+function renderMovies(list){document.getElementById("recommendations").innerHTML=list.map(m=>card(m)).join("");document.getElementById("resultCount").textContent=list.length+" movies";}
+async function renderWatchlist(){if(!db)return;const list=await getSaved();document.getElementById("savedMovies").innerHTML=list.length?list.map(m=>card(m,true)).join(""):'<div class="empty" style="grid-column:1/-1">Your watchlist is empty. Head to Discover and save a movie.</div>';document.getElementById("savedStat").textContent=list.length;document.getElementById("watchedStat").textContent=list.filter(m=>m.watched).length;document.getElementById("navcount").textContent=list.length?`(${list.length})`:"";}
+function movieEmoji(m){
+ const t=(m.tags+' '+m.genre+' '+m.title).toLowerCase();
+ if(/horror|scary|creepy/.test(t))return '👁️';
+ if(/space|sci-fi|science fiction|alien|future/.test(t))return '🚀';
+ if(/romance|love|relationship/.test(t))return '💛';
+ if(/comedy|funny|lighthearted/.test(t))return '🎭';
+ if(/mystery|detective|crime|thriller|suspense/.test(t))return '🕵️';
+ if(/animation|family/.test(t))return '✨';
+ if(/music|musical/.test(t))return '🎵';
+ if(/action|adventure|superhero/.test(t))return '⚡';
+ return '🎬';
+}
+function normalizeText(s){return s.toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
+function editDistance(a,b){const row=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=row[0];row[0]=i;for(let j=1;j<=b.length;j++){const temp=row[j];row[j]=Math.min(row[j]+1,row[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=temp;}}return row[b.length];}
+function search(){
+ const raw=document.getElementById('mood').value.trim();
+ if(!raw){renderMovies(movies);document.getElementById('resultsTitle').textContent='Popular picks';return;}
+ const q=normalizeText(raw);
+ const groups=[
+  {keys:['funny','comedy','hilarious','laugh','humor','humorous','goofy','silly','lighthearted'],terms:['funny','comedy','lighthearted'],weight:3},
+  {keys:['twist','twisty','ending','unexpected','surprise','shocking','mindblowing','mind bending','plot'],terms:['twist','mind bending','mystery'],weight:3.5},
+  {keys:['suspense','suspenseful','tense','thrilling','thriller','gripping','edge'],terms:['suspense','thriller','mystery'],weight:3},
+  {keys:['scary','horror','terrifying','creepy','frightening','spooky'],terms:['horror','scary','creepy'],weight:3},
+  {keys:['romance','romantic','love','relationship','date','dating'],terms:['romance','romantic','love'],weight:3},
+  {keys:['space','future','scifi','science fiction','alien','robots','technology'],terms:['sci fi','space','futuristic'],weight:3},
+  {keys:['action','fight','fighting','superhero','hero','adventure','explosive','fast paced'],terms:['action','adventure','superhero'],weight:2.7},
+  {keys:['emotional','sad','heartwarming','deep','meaningful','thought provoking','moving','cry'],terms:['emotional','drama','heartwarming'],weight:2.8},
+  {keys:['mystery','detective','crime','investigation','secret','mysterious','whodunit'],terms:['mystery','detective','crime'],weight:3},
+  {keys:['inspiring','motivational','uplifting','feel good','positive'],terms:['uplifting','hopeful','heartwarming'],weight:3},
+  {keys:['dark','disturbing','psychological','mind','intense'],terms:['dark','psychological','intense'],weight:2.2},
+  {keys:['friendship','friends','family','coming of age'],terms:['friendship','family'],weight:2.5}
+ ];
+ const negatives=[];
+ const negativePatterns=[
+  {re:/not too scary|not scary|less scary|without horror|no horror|avoid horror/,terms:['horror','scary','creepy']},
+  {re:/not funny|no comedy|without comedy/,terms:['funny','comedy']},
+  {re:/not romantic|no romance|without romance/,terms:['romance','romantic']},
+  {re:/not sad|no drama|without drama/,terms:['sad','emotional','drama']}
+ ];
+ negativePatterns.forEach(n=>{if(n.re.test(q))negatives.push(...n.terms)});
+ const cleaned=q.replace(/\b(not|no|without|avoid|less|too|very|really|kind|sort|of|something|some|movie|movies|film|films|looking|want|like|give|find|me|for|a|an|the|and|but|with|that|this|thats|its|is|are|to|be|about|please|show)\b/g,' ').replace(/\s+/g,' ').trim();
+ const queryTokens=cleaned.split(' ').filter(w=>w.length>2);
+ const active=groups.filter(g=>g.keys.some(k=>q.includes(k)));
+ const ranked=movies.map(m=>{
+  const hay=normalizeText([m.title,m.genre,m.desc,m.tags].join(' '));const tokens=hay.split(' ');let score=0;let reasons=[];
+  // Exact phrase and title matches receive the strongest weight.
+  if(q.includes(normalizeText(m.title)))score+=9;
+  active.forEach(g=>{if(g.terms.some(term=>hay.includes(normalizeText(term)))){score+=g.weight;reasons.push(g.terms[0]);}});
+  queryTokens.forEach(w=>{
+   if(tokens.includes(w))score+=1.8;
+   else if(tokens.some(t=>t.length>3&&w.length>3&&editDistance(w,t)===1))score+=0.65;
+  });
+  negatives.forEach(n=>{if(n.split(' ').some(term=>hay.includes(term)))score-=5;});
+  // A mixed request such as "funny but suspenseful" should reward titles that match both.
+  if(active.length>1){const matched=active.filter(g=>g.terms.some(term=>hay.includes(normalizeText(term)))).length;score+=matched*1.25;if(matched===active.length)score+=2.5;}
+  return {m,score,reasons};
+ }).sort((a,b)=>b.score-a.score);
+ const threshold=active.length?2.3:1.7;
+ const found=ranked.filter(x=>x.score>=threshold).slice(0,8).map(x=>x.m);
+ if(!found.length){
+  document.getElementById('resultsTitle').textContent='No close matches found';
+  document.getElementById('resultCount').textContent='0 matches';
+  document.getElementById('recommendations').innerHTML='<div class="empty" style="grid-column:1/-1"><strong>We couldn’t find a confident match.</strong><br>Try a genre or mood like “funny mystery”, “space adventure”, or “romantic comedy”.</div>';
+  return;
+ }
+ document.getElementById('resultsTitle').textContent='Best matches for “'+raw+'”';
+ renderMovies(found);
+}
+function details(id){const m=movies.find(x=>x.id===id);document.getElementById("modalTitle").textContent=m.title;document.getElementById("modalMeta").textContent=m.year+" · "+m.genre+" · ★ "+m.rating;document.getElementById("modalDesc").textContent=m.desc;document.getElementById("modalback").classList.add("show")}
+document.getElementById("findbtn").onclick=search;document.getElementById("mood").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{document.getElementById("mood").value=b.dataset.prompt;search()});
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active");renderWatchlist()});
+document.getElementById("closemodal").onclick=()=>document.getElementById("modalback").classList.remove("show");document.getElementById("modalback").onclick=e=>{if(e.target.id==="modalback")e.currentTarget.classList.remove("show")};
+renderMovies(movies);
+</script></body></html>
